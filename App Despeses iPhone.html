@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Despeses">
+<title>Despeses en Metàl·lic</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+  :root {
+    --blue: #185FA5;
+    --blue-light: #E6F1FB;
+    --blue-dark: #0C447C;
+    --green: #3B6D11;
+    --green-light: #EAF3DE;
+    --green-dark: #27500A;
+    --gray-100: #f5f5f5;
+    --gray-200: #e8e8e8;
+    --gray-400: #aaaaaa;
+    --gray-600: #666666;
+    --gray-900: #1a1a1a;
+    --danger: #cc0000;
+    --bg: #ffffff;
+    --bg-secondary: #f7f7f7;
+    --text: #1a1a1a;
+    --text-secondary: #666666;
+    --border: #e0e0e0;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111111;
+      --bg-secondary: #1e1e1e;
+      --text: #f0f0f0;
+      --text-secondary: #999999;
+      --border: #333333;
+      --gray-100: #2a2a2a;
+      --gray-200: #333333;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); max-width: 480px; margin: 0 auto; min-height: 100vh; }
+
+  /* TAB BAR */
+  #tab-bar { display: flex; background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; padding: 8px 12px 0; gap: 4px; }
+  .tab { flex: 1; padding: 9px 4px; font-size: 13px; font-weight: 500; border: 1px solid var(--border); border-bottom: none; border-radius: 9px 9px 0 0; cursor: pointer; text-align: center; transition: background 0.15s, color 0.15s; background: var(--gray-100); color: var(--text-secondary); }
+  .tab.on { background: var(--gray-900); color: #ffffff; border-color: var(--gray-900); }
+  @media (prefers-color-scheme: dark) { .tab.on { background: #f0f0f0; color: #111111; border-color: #f0f0f0; } }
+
+  /* SCREENS */
+  .screen { display: none; padding: 1rem; padding-bottom: 5rem; }
+  .screen.active { display: block; }
+
+  /* TOPBAR */
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .topbar h2 { font-size: 20px; font-weight: 600; color: var(--text); }
+
+  /* BUTTONS */
+  .btn { padding: 8px 14px; font-size: 14px; border: 1px solid var(--border); border-radius: var(--radius); background: transparent; color: var(--text); cursor: pointer; font-family: inherit; }
+  .btn-primary { background: var(--gray-900); color: #fff; border-color: var(--gray-900); }
+  .btn-sm { padding: 6px 12px; font-size: 13px; }
+  .btn-danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+  .btn-export { background: var(--gray-900); color: #fff; border-color: var(--gray-900); display: flex; align-items: center; gap: 5px; }
+  @media (prefers-color-scheme: dark) { .btn-primary, .btn-export { background: #f0f0f0; color: #111; border-color: #f0f0f0; } }
+
+  /* PENDENT BANNER */
+  .pendent-banner { background: var(--green-light); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .pendent-label { font-size: 12px; color: var(--green); margin-bottom: 3px; font-weight: 500; }
+  .pendent-val { font-size: 26px; font-weight: 700; color: var(--green); }
+  .btn-reg { padding: 10px 16px; font-size: 14px; font-weight: 600; border: 2px solid var(--green); border-radius: var(--radius); background: var(--green); color: #fff; cursor: pointer; white-space: nowrap; font-family: inherit; }
+
+  /* FILTER CHIPS */
+  .filter-row { display: flex; gap: 6px; margin-bottom: 1rem; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .chip { flex-shrink: 0; padding: 6px 14px; font-size: 13px; border: 1px solid var(--border); border-radius: 20px; background: transparent; color: var(--text-secondary); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .chip.active { background: var(--gray-900); color: #fff; border-color: var(--gray-900); }
+  @media (prefers-color-scheme: dark) { .chip.active { background: #f0f0f0; color: #111; border-color: #f0f0f0; } }
+
+  /* LLISTA */
+  .date-sep { font-size: 12px; color: var(--text-secondary); margin: 12px 0 5px; font-weight: 500; }
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 7px; display: flex; align-items: center; gap: 11px; cursor: pointer; transition: background 0.1s; }
+  .card:active { background: var(--bg-secondary); }
+  .card-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 17px; }
+  .card-icon.personal { background: var(--blue-light); color: var(--blue); }
+  .card-icon.comuna { background: var(--green-light); color: var(--green); }
+  .card-icon.regularitzacio { background: var(--gray-100); color: var(--gray-600); }
+  .card-info { flex: 1; min-width: 0; }
+  .card-desc { font-size: 15px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .card-amount { font-size: 16px; font-weight: 600; color: var(--text); white-space: nowrap; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 6px; margin-left: 5px; }
+  .badge-personal { background: var(--blue-light); color: var(--blue-dark); }
+  .badge-comuna { background: var(--green-light); color: var(--green-dark); }
+  .empty { text-align: center; padding: 3rem 1rem; color: var(--text-secondary); font-size: 14px; }
+  .empty i { font-size: 40px; display: block; margin-bottom: 10px; opacity: 0.4; }
+
+  /* FAB */
+  .fab { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 40; }
+  .fab button { width: 54px; height: 54px; border-radius: 50%; background: var(--gray-900); color: #fff; border: none; font-size: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.18); }
+  @media (prefers-color-scheme: dark) { .fab button { background: #f0f0f0; color: #111; } }
+
+  /* RESUM */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+  .stat-card { border-radius: var(--radius); padding: 13px 15px; }
+  .stat-card.full { grid-column: 1 / -1; background: var(--bg-secondary); border-left: 3px solid var(--gray-900); }
+  .stat-card.personal { background: var(--blue-light); border-left: 3px solid var(--blue); }
+  .stat-card.comuna { background: var(--green-light); border-left: 3px solid var(--green); }
+  .stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 500; }
+  .stat-card.personal .stat-label { color: var(--blue-dark); }
+  .stat-card.comuna .stat-label { color: var(--green-dark); }
+  .stat-val { font-size: 22px; font-weight: 700; color: var(--text); }
+  .stat-card.personal .stat-val { color: var(--blue); }
+  .stat-card.comuna .stat-val { color: var(--green); }
+  .stat-sub { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
+  .cat-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .cat-label { font-size: 13px; color: var(--text); min-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cat-bar-wrap { flex: 1; height: 6px; background: var(--gray-200); border-radius: 3px; overflow: hidden; }
+  .cat-bar { height: 100%; border-radius: 3px; }
+  .cat-amount { font-size: 13px; color: var(--text); min-width: 65px; text-align: right; }
+  .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* AJUSTOS */
+  .cat-edit-row { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+  .cat-edit-row input { flex: 1; padding: 7px 10px; font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: inherit; }
+  .add-row { display: flex; gap: 8px; margin-top: 10px; }
+  .add-row input { flex: 1; padding: 8px 10px; font-size: 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: inherit; }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--bg); border-radius: 20px 20px 0 0; padding: 1.25rem; width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto; transform: translateY(100%); transition: transform 0.25s cubic-bezier(0.32,0.72,0,1); }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .modal-header h3 { font-size: 18px; font-weight: 600; color: var(--text); }
+  .field { margin-bottom: 1rem; }
+  .field label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 5px; font-weight: 500; }
+  .field input, .field select, .field textarea { width: 100%; padding: 10px 12px; font-size: 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: inherit; -webkit-appearance: none; appearance: none; }
+  .field textarea { resize: none; height: 56px; }
+  .toggle-row { display: flex; gap: 10px; }
+  .tipo-btn { flex: 1; padding: 13px 8px; font-size: 15px; font-weight: 600; border-radius: var(--radius); cursor: pointer; text-align: center; font-family: inherit; transition: all 0.15s; border: 2px solid var(--border); background: var(--gray-100); color: var(--text-secondary); }
+  .tipo-btn i { display: block; font-size: 22px; margin-bottom: 4px; }
+  .tipo-btn.personal-on { border-color: var(--blue); background: var(--blue); color: #fff; }
+  .tipo-btn.comuna-on { border-color: var(--green); background: var(--green); color: #fff; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 0.25rem; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+
+  /* REGULARITZACIÓ INFO */
+  .reg-info { background: var(--green-light); border-radius: var(--radius); padding: 13px 15px; margin-bottom: 1rem; }
+  .reg-info-label { font-size: 12px; color: var(--green); font-weight: 600; margin-bottom: 4px; }
+  .reg-info-val { font-size: 28px; font-weight: 700; color: var(--green); }
+  .sug-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .sug-btn { padding: 6px 14px; font-size: 13px; border: 1.5px solid var(--green); border-radius: 20px; background: transparent; color: var(--green); cursor: pointer; font-family: inherit; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div id="tab-bar">
+  <button class="tab on" id="tab-llista" onclick="showScreen('llista')">Llista</button>
+  <button class="tab" id="tab-resum" onclick="showScreen('resum')">Resum</button>
+  <button class="tab" id="tab-ajustos" onclick="showScreen('ajustos')">Ajustos</button>
+</div>
+
+<!-- LLISTA -->
+<div id="screen-llista" class="screen active">
+  <div id="pendent-wrap"></div>
+  <div class="topbar">
+    <h2>Moviments</h2>
+    <button class="btn btn-sm btn-export" onclick="exportCSV()">
+      <i class="ti ti-download"></i> Exportar CSV
+    </button>
+  </div>
+  <div class="filter-row" id="filter-row"></div>
+  <div id="llista-container"></div>
+  <div class="fab"><button onclick="openModal(null)" aria-label="Afegir despesa"><i class="ti ti-plus"></i></button></div>
+</div>
+
+<!-- RESUM -->
+<div id="screen-resum" class="screen">
+  <div class="topbar"><h2>Resum</h2></div>
+  <div id="resum-container"></div>
+</div>
+
+<!-- AJUSTOS -->
+<div id="screen-ajustos" class="screen">
+  <div class="topbar"><h2>Ajustos</h2></div>
+  <div class="section-title">Categories personals</div>
+  <div id="cats-personal-list"></div>
+  <div class="add-row">
+    <input id="new-cat-p" placeholder="Nova categoria personal...">
+    <button class="btn btn-sm" onclick="addCat('personal')" style="background:var(--blue);color:#fff;border-color:var(--blue)">+ Afegir</button>
+  </div>
+  <div class="divider"></div>
+  <div class="section-title">Categories comunes</div>
+  <div id="cats-comuna-list"></div>
+  <div class="add-row">
+    <input id="new-cat-c" placeholder="Nova categoria comuna...">
+    <button class="btn btn-sm" onclick="addCat('comuna')" style="background:var(--green);color:#fff;border-color:var(--green)">+ Afegir</button>
+  </div>
+  <div class="divider"></div>
+  <button class="btn btn-danger btn-sm" onclick="clearAll()" style="width:100%">
+    <i class="ti ti-trash"></i> Esborrar totes les dades
+  </button>
+</div>
+
+<!-- MODAL DESPESA -->
+<div class="modal-overlay" id="modal-bg" onclick="bgClick(event,'modal-bg')">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Nou moviment</h3>
+      <button class="btn btn-sm" onclick="closeModal('modal-bg')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field">
+      <label>Tipus</label>
+      <div class="toggle-row">
+        <button type="button" class="tipo-btn personal-on" id="btn-personal" onclick="setTipus('personal')">
+          <i class="ti ti-user"></i>Personal
+        </button>
+        <button type="button" class="tipo-btn" id="btn-comuna" onclick="setTipus('comuna')">
+          <i class="ti ti-users"></i>Comuna
+        </button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Categoria</label>
+      <select id="f-cat"></select>
+    </div>
+    <div class="field">
+      <label>Concepte</label>
+      <input id="f-desc" type="text" placeholder="p.ex. Cafè al Bar Roma">
+    </div>
+    <div class="field">
+      <label>Import (€)</label>
+      <input id="f-import" type="number" step="0.01" min="0.01" inputmode="decimal" placeholder="0,00">
+    </div>
+    <div class="field">
+      <label>Data</label>
+      <input id="f-data" type="date">
+    </div>
+    <div id="modal-delete-row" style="display:none;margin-bottom:0.75rem">
+      <button class="btn btn-danger btn-sm" onclick="deleteDespesa()" style="width:100%">
+        <i class="ti ti-trash"></i> Eliminar aquest moviment
+      </button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-bg')" style="flex:1">Cancel·lar</button>
+      <button class="btn btn-primary" onclick="saveDespesa()" style="flex:2">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REGULARITZACIÓ -->
+<div class="modal-overlay" id="modal-reg" onclick="bgClick(event,'modal-reg')">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Regularitzar comunes</h3>
+      <button class="btn btn-sm" onclick="closeModal('modal-reg')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="reg-info">
+      <div class="reg-info-label">Pendent de regularitzar</div>
+      <div class="reg-info-val" id="reg-pendent-val">0,00 €</div>
+    </div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:1rem;line-height:1.5">
+      Els caixers donen bitllets de 50€ i 20€. Selecciona l'import que trauràs, o escriu-ne un de diferent.
+    </p>
+    <div class="field">
+      <label>Import a treure del caixer (€)</label>
+      <input id="reg-import" type="number" step="10" min="0" inputmode="numeric" placeholder="0">
+      <div class="sug-row" id="reg-suggestions"></div>
+    </div>
+    <div class="field">
+      <label>Data</label>
+      <input id="reg-data" type="date">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-reg')" style="flex:1">Cancel·lar</button>
+      <button class="btn btn-primary" onclick="saveRegularitzacio()" style="flex:2">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DADES PER DEFECTE ──────────────────────────────────────────────────────
+var CATS_P = ["ACNUR","Associació Espanyola contra el càncer","Escola d'Anglès","Farmàcia","Impostos","Magatzem de Benavent","Metges","Oci","Perruquer","Quota Gimnàs Albert","Quota Gimnàs Maria","Roba i calçat","Seguretat Social","Varies"];
+var CATS_C = ["Abril. Escola de música","Abril. Estudis","Abril. Llibres","Abril. Metges","Abril. Altres","Casa. Abastament Aigua","Casa. Calefacció","Casa. Hipoteca","Casa. Manteniment","Casa. Neteja","Casa. Altres","General. Alimentació","General. Assegurances","General. Assessorament fiscal","General. Efectiu","General. Electricitat","General. Oci","General. Regals","General. Telefonía Fixa i internet","General. Telefonía mòbil","Impostos. Clavegueres","Impostos. Escombraries","Impostos. IBI Urbana","Maria. Estudis","Maria. Gimnàs","Maria. Metges","Maria. Altres","Mercè. Assegurança de vida","Mercè. Metges","Mercè. Altres","Mixu. Veterinari","Vehicles. Opel Astra","Vehicles. Toyota Prius"];
+
+// ── ESTAT ──────────────────────────────────────────────────────────────────
+var despeses = [];
+var catsP = CATS_P.slice();
+var catsC = CATS_C.slice();
+var pendent = 0;
+var editId = null;
+var tipusAct = 'personal';
+var filterAct = 'tot';
+
+(function loadData() {
+  try { var s = localStorage.getItem('dm_desp'); if (s) despeses = JSON.parse(s); } catch(e){}
+  try { var s = localStorage.getItem('dm_cp');   if (s) catsP = JSON.parse(s); } catch(e){}
+  try { var s = localStorage.getItem('dm_cc');   if (s) catsC = JSON.parse(s); } catch(e){}
+  try { var s = localStorage.getItem('dm_pend'); if (s) pendent = parseFloat(s) || 0; } catch(e){}
+})();
+
+function saveData() {
+  try {
+    localStorage.setItem('dm_desp', JSON.stringify(despeses));
+    localStorage.setItem('dm_cp',   JSON.stringify(catsP));
+    localStorage.setItem('dm_cc',   JSON.stringify(catsC));
+    localStorage.setItem('dm_pend', String(pendent));
+  } catch(e) { alert('Error guardant dades: ' + e.message); }
+}
+
+// ── NAVEGACIÓ ──────────────────────────────────────────────────────────────
+function showScreen(name) {
+  ['llista','resum','ajustos'].forEach(function(n) {
+    document.getElementById('screen-' + n).classList.toggle('active', n === name);
+    document.getElementById('tab-' + n).classList.toggle('on', n === name);
+  });
+  if (name === 'llista')  { renderPendent(); renderLlista(); }
+  if (name === 'resum')   renderResum();
+  if (name === 'ajustos') renderAjustos();
+}
+
+// ── TIPUS (personal/comuna) ────────────────────────────────────────────────
+function setTipus(t) {
+  tipusAct = t;
+  document.getElementById('btn-personal').className = 'tipo-btn' + (t === 'personal' ? ' personal-on' : '');
+  document.getElementById('btn-comuna').className   = 'tipo-btn' + (t === 'comuna'   ? ' comuna-on'   : '');
+  var cats = t === 'personal' ? catsP : catsC;
+  var cur  = document.getElementById('f-cat').value;
+  document.getElementById('f-cat').innerHTML = cats.map(function(c) {
+    return '<option value="' + esc(c) + '"' + (c === cur ? ' selected' : '') + '>' + c + '</option>';
+  }).join('');
+}
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function fmtData(d) { var p = d.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
+function toExcelDate(d) {
+  var epoch = new Date(Date.UTC(1899,11,30));
+  var dd = new Date(d + 'T00:00:00Z');
+  return Math.round((dd - epoch) / 86400000);
+}
+function today() { return new Date().toISOString().slice(0,10); }
+
+// ── PENDENT BANNER ─────────────────────────────────────────────────────────
+function renderPendent() {
+  var w = document.getElementById('pendent-wrap');
+  if (pendent <= 0) { w.innerHTML = ''; return; }
+  w.innerHTML = '<div class="pendent-banner">'
+    + '<div><div class="pendent-label">Pendent de regularitzar (comunes)</div>'
+    + '<div class="pendent-val">' + pendent.toFixed(2) + ' €</div></div>'
+    + '<button class="btn-reg" onclick="openRegModal()">Regularitzar</button>'
+    + '</div>';
+}
+
+// ── LLISTA ─────────────────────────────────────────────────────────────────
+function renderLlista() {
+  var chips = [{k:'tot',l:'Totes'},{k:'personal',l:'Personal'},{k:'comuna',l:'Comuna'}];
+  document.getElementById('filter-row').innerHTML = chips.map(function(f) {
+    return '<button class="chip' + (filterAct === f.k ? ' active' : '') + '" onclick="setFilter(\'' + f.k + '\')">' + f.l + '</button>';
+  }).join('');
+
+  var list = despeses.slice();
+  if (filterAct === 'personal')      list = list.filter(function(d){ return d.tipus === 'personal'; });
+  else if (filterAct === 'comuna')   list = list.filter(function(d){ return d.tipus === 'comuna'; });
+  list.sort(function(a,b){ return b.data.localeCompare(a.data); });
+
+  var cont = document.getElementById('llista-container');
+  if (!list.length) {
+    cont.innerHTML = '<div class="empty"><i class="ti ti-receipt-off"></i>Cap moviment apuntat</div>';
+    return;
+  }
+  var lastDate = '', html = '';
+  list.forEach(function(d) {
+    if (d.data !== lastDate) {
+      lastDate = d.data;
+      html += '<div class="date-sep">' + fmtData(d.data) + '</div>';
+    }
+    var isReg = d.tipus === 'regularitzacio';
+    var iconClass = isReg ? 'regularitzacio' : d.tipus;
+    var icon = isReg ? 'ti-arrows-exchange' : (d.tipus === 'comuna' ? 'ti-users' : 'ti-user');
+    var badge = isReg ? '' : '<span class="badge badge-' + d.tipus + '">' + d.tipus + '</span>';
+    html += '<div class="card" onclick="openModal(\'' + d.id + '\')">'
+      + '<div class="card-icon ' + iconClass + '"><i class="ti ' + icon + '"></i></div>'
+      + '<div class="card-info">'
+      + '<div class="card-desc">' + esc(d.desc || d.cat) + '</div>'
+      + '<div class="card-meta">' + esc(d.cat) + badge + '</div>'
+      + '</div>'
+      + '<div class="card-amount">' + parseFloat(d.import).toFixed(2) + ' €</div>'
+      + '</div>';
+  });
+  cont.innerHTML = html;
+}
+
+function setFilter(f) { filterAct = f; renderLlista(); }
+
+// ── RESUM ──────────────────────────────────────────────────────────────────
+function renderResum() {
+  var movs = despeses.filter(function(d){ return d.tipus !== 'regularitzacio'; });
+  var total    = movs.reduce(function(s,d){ return s + parseFloat(d.import); }, 0);
+  var personal = movs.filter(function(d){ return d.tipus==='personal'; }).reduce(function(s,d){ return s + parseFloat(d.import); }, 0);
+  var comuna   = movs.filter(function(d){ return d.tipus==='comuna';   }).reduce(function(s,d){ return s + parseFloat(d.import); }, 0);
+
+  var html = '<div class="stat-grid">'
+    + '<div class="stat-card full"><div class="stat-label">Total pendent exportar</div><div class="stat-val">' + total.toFixed(2) + ' €</div><div class="stat-sub">' + movs.length + ' moviments</div></div>'
+    + '<div class="stat-card personal"><div class="stat-label">Personal</div><div class="stat-val">' + personal.toFixed(2) + ' €</div><div class="stat-sub">' + movs.filter(function(d){return d.tipus==='personal';}).length + ' moviments</div></div>'
+    + '<div class="stat-card comuna"><div class="stat-label">Comunes</div><div class="stat-val">' + comuna.toFixed(2) + ' €</div>'
+    + (pendent > 0 ? '<div class="stat-sub">' + pendent.toFixed(2) + ' € pendent regularitzar</div>' : '')
+    + '</div></div>';
+
+  var byCat = {};
+  movs.forEach(function(d) {
+    var k = d.cat + '|' + d.tipus;
+    if (!byCat[k]) byCat[k] = {cat: d.cat, tipus: d.tipus, total: 0};
+    byCat[k].total += parseFloat(d.import);
+  });
+  var sorted = Object.values(byCat).sort(function(a,b){ return b.total - a.total; });
+
+  if (sorted.length) {
+    html += '<div class="section-title">Per categoria</div>';
+    var max = sorted[0].total;
+    sorted.forEach(function(x) {
+      var col = x.tipus === 'comuna' ? '#639922' : '#378ADD';
+      html += '<div class="cat-row">'
+        + '<div class="cat-label">' + esc(x.cat) + '</div>'
+        + '<div class="cat-bar-wrap"><div class="cat-bar" style="width:' + Math.round(x.total/max*100) + '%;background:' + col + '"></div></div>'
+        + '<div class="cat-amount">' + x.total.toFixed(2) + ' €</div>'
+        + '</div>';
+    });
+  }
+  document.getElementById('resum-container').innerHTML = html;
+}
+
+// ── AJUSTOS ────────────────────────────────────────────────────────────────
+function renderAjustos() {
+  ['personal','comuna'].forEach(function(t) {
+    var cats = t === 'personal' ? catsP : catsC;
+    document.getElementById('cats-' + t + '-list').innerHTML = cats.map(function(c, i) {
+      return '<div class="cat-edit-row">'
+        + '<input value="' + esc(c) + '" onchange="renameCat(\'' + t + '\',' + i + ',this.value)">'
+        + '<button class="btn btn-danger btn-sm" onclick="deleteCat(\'' + t + '\',' + i + ')"><i class="ti ti-trash"></i></button>'
+        + '</div>';
+    }).join('');
+  });
+}
+
+function renameCat(t, i, v) {
+  if (t === 'personal') catsP[i] = v; else catsC[i] = v;
+  saveData();
+}
+function deleteCat(t, i) {
+  var cats = t === 'personal' ? catsP : catsC;
+  if (despeses.some(function(d){ return d.cat === cats[i] && d.tipus === t; })) {
+    alert('Hi ha moviments amb aquesta categoria. Canvia\'ls primer.'); return;
+  }
+  cats.splice(i, 1); saveData(); renderAjustos();
+}
+function addCat(t) {
+  var id = t === 'personal' ? 'new-cat-p' : 'new-cat-c';
+  var v  = document.getElementById(id).value.trim();
+  if (!v) return;
+  var cats = t === 'personal' ? catsP : catsC;
+  if (cats.indexOf(v) < 0) { cats.push(v); saveData(); }
+  document.getElementById(id).value = '';
+  renderAjustos();
+}
+
+// ── MODALS ─────────────────────────────────────────────────────────────────
+function openModal(id) {
+  editId = id || null;
+  var d = id ? despeses.find(function(x){ return x.id === id; }) : null;
+  document.getElementById('modal-title').textContent = d ? 'Editar moviment' : 'Nou moviment';
+  document.getElementById('f-desc').value   = d ? d.desc  : '';
+  document.getElementById('f-import').value = d ? d.import : '';
+  document.getElementById('f-data').value   = d ? d.data  : today();
+  setTipus(d ? (d.tipus === 'regularitzacio' ? 'personal' : d.tipus) : 'personal');
+  if (d) document.getElementById('f-cat').value = d.cat;
+  document.getElementById('modal-delete-row').style.display = d ? 'block' : 'none';
+  openOverlay('modal-bg');
+}
+
+function openRegModal() {
+  document.getElementById('reg-pendent-val').textContent = pendent.toFixed(2) + ' €';
+  document.getElementById('reg-data').value = today();
+  var s20 = Math.floor(pendent / 20) * 20;
+  var s50 = Math.floor(pendent / 50) * 50;
+  var sugs = [];
+  [s50, s20, s20 - 20].forEach(function(v) { if (v > 0 && sugs.indexOf(v) < 0) sugs.push(v); });
+  sugs.sort(function(a,b){ return b - a; });
+  document.getElementById('reg-import').value = sugs[0] || '';
+  document.getElementById('reg-suggestions').innerHTML = sugs.map(function(v) {
+    return '<button type="button" class="sug-btn" onclick="document.getElementById(\'reg-import\').value=' + v + '">' + v + ' €</button>';
+  }).join('');
+  openOverlay('modal-reg');
+}
+
+function openOverlay(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id)   { document.getElementById(id).classList.remove('open'); if (id === 'modal-bg') editId = null; }
+function bgClick(e, id)   { if (e.target === document.getElementById(id)) closeModal(id); }
+
+// ── GUARDAR DESPESA ────────────────────────────────────────────────────────
+function saveDespesa() {
+  var desc  = document.getElementById('f-desc').value.trim();
+  var imp   = parseFloat(document.getElementById('f-import').value);
+  var data  = document.getElementById('f-data').value;
+  var cat   = document.getElementById('f-cat').value;
+  if (!imp || imp <= 0 || !data || !cat) { alert('Omple tots els camps obligatoris.'); return; }
+
+  var entry = { id: editId || String(Date.now()), desc: desc, import: imp, data: data, cat: cat, tipus: tipusAct };
+
+  if (editId) {
+    var old = despeses.find(function(x){ return x.id === editId; });
+    if (old && old.tipus === 'comuna') pendent = Math.max(0, parseFloat((pendent - parseFloat(old.import)).toFixed(2)));
+    var idx = despeses.findIndex(function(x){ return x.id === editId; });
+    if (idx > -1) despeses[idx] = entry;
+  } else {
+    despeses.push(entry);
+  }
+  if (tipusAct === 'comuna') pendent = parseFloat((pendent + imp).toFixed(2));
+
+  saveData(); closeModal('modal-bg'); renderPendent(); renderLlista();
+}
+
+function deleteDespesa() {
+  if (!editId || !confirm('Eliminar aquest moviment?')) return;
+  var d = despeses.find(function(x){ return x.id === editId; });
+  if (d && d.tipus === 'comuna') pendent = Math.max(0, parseFloat((pendent - parseFloat(d.import)).toFixed(2)));
+  despeses = despeses.filter(function(x){ return x.id !== editId; });
+  saveData(); closeModal('modal-bg'); renderPendent(); renderLlista();
+}
+
+// ── REGULARITZACIÓ ─────────────────────────────────────────────────────────
+function saveRegularitzacio() {
+  var imp  = parseFloat(document.getElementById('reg-import').value);
+  var data = document.getElementById('reg-data').value;
+  if (!imp || imp <= 0) { alert('Indica l\'import tret del caixer.'); return; }
+  if (imp > pendent)    { alert('L\'import no pot superar el pendent (' + pendent.toFixed(2) + ' €).'); return; }
+  despeses.push({ id: String(Date.now()), desc: 'Regularització comunes (caixer)', import: imp, data: data, cat: 'General. Efectiu', tipus: 'regularitzacio' });
+  pendent = parseFloat(Math.max(0, pendent - imp).toFixed(2));
+  saveData(); closeModal('modal-reg'); renderPendent(); renderLlista();
+}
+
+// ── EXPORTAR CSV ───────────────────────────────────────────────────────────
+function exportCSV() {
+  var movs = despeses.filter(function(d){ return d.tipus !== 'regularitzacio'; });
+  var regs = despeses.filter(function(d){ return d.tipus === 'regularitzacio'; });
+  if (!despeses.length) { alert('No hi ha moviments per exportar.'); return; }
+
+  // Columnes igual que l'Excel: Data (número Excel), Compte, Categoría, Concepte, Import, Comptabilitzat
+  var rows = ['Data\tCompte\tCategoría\tConcepte\tImport\tComptabilitzat'];
+  var allExport = movs.concat(regs).sort(function(a,b){ return a.data.localeCompare(b.data); });
+  allExport.forEach(function(d) {
+    var imp = d.tipus === 'regularitzacio' ? d.import : -Math.abs(d.import);
+    rows.push([toExcelDate(d.data), 'En Metàl·lic', d.cat, d.desc || '', imp, ''].join('\t'));
+  });
+
+  var blob = new Blob([rows.join('\n')], { type: 'text/tab-separated-values;charset=utf-8;' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'metallic_' + today() + '.tsv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+  // Esborrar moviments exportats, mantenir el pendent
+  despeses = [];
+  saveData(); renderPendent(); renderLlista();
+  setTimeout(function() {
+    alert('Exportat correctament!\n\nEls moviments s\'han esborrat de l\'app.\nEl saldo pendent de regularitzar (' + pendent.toFixed(2) + ' €) es manté.');
+  }, 300);
+}
+
+function clearAll() {
+  if (confirm('Segur que vols esborrar TOTES les dades, incloent el pendent de regularització?')) {
+    despeses = []; pendent = 0; saveData(); renderPendent(); renderLlista();
+  }
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+showScreen('llista');
+</script>
+</body>
+</html>
